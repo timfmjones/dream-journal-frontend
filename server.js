@@ -5,6 +5,7 @@ const compression = require('compression');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0'; // Important for Railway
 
 // Enable gzip compression
 app.use(compression());
@@ -49,8 +50,8 @@ app.get('*', (req, res) => {
   });
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`Frontend server is running on port ${PORT}`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`Frontend server is running on ${HOST}:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'production'}`);
   console.log(`API URL: ${process.env.VITE_API_BASE_URL || 'Not set'}`);
 });
