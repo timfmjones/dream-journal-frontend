@@ -4,12 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "npx vite",
+    "build": "npx vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "start": "node server.js",
-    "type-check": "tsc -b"
+    "preview": "npx vite preview",
+    "start": "node server.js"
   },
   "dependencies": {
     "compression": "^1.7.4",
