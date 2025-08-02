@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx vite",
-    "build": "npx vite build",
+    "dev": "vite",
+    "build": "echo 'Current directory:' && pwd && echo 'Files in node_modules/.bin:' && ls -la node_modules/.bin/ | grep vite || echo 'Vite not found' && npx vite build",
     "lint": "eslint .",
-    "preview": "npx vite preview",
+    "preview": "vite preview",
     "start": "node server.js"
   },
   "dependencies": {
