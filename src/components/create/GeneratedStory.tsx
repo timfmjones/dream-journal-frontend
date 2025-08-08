@@ -18,10 +18,13 @@ const GeneratedStory: React.FC<GeneratedStoryProps> = ({ title, story, images, o
   useEffect(() => {
     // Scroll to the story when it's rendered
     if (storyRef.current) {
-      storyRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start',
-        inline: 'nearest' 
+      // Get the element's position
+      const elementPosition = storyRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - 100; // 100px offset for header
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
       });
     }
   }, [story]); // Re-run if story changes

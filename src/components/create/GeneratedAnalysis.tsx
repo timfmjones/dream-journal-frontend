@@ -16,10 +16,13 @@ const GeneratedAnalysis: React.FC<GeneratedAnalysisProps> = ({ title, analysis, 
   useEffect(() => {
     // Scroll to the analysis when it's rendered
     if (analysisRef.current) {
-      analysisRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start',
-        inline: 'nearest' 
+      // Get the element's position
+      const elementPosition = analysisRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - 100; // 100px offset for header
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
       });
     }
   }, [analysis]); // Re-run if analysis changes
