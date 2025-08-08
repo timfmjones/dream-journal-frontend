@@ -43,6 +43,7 @@ body {
   transition: all 0.2s;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .nav-button:hover {
@@ -864,4 +865,53 @@ body {
 .favorite-toggle:active::after {
   width: 40px;
   height: 40px;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 640px) {
+  /* Adjust header padding */
+  .header-container .content-container {
+    padding: 0 12px;
+  }
+  
+  /* Make nav buttons more compact on mobile */
+  .nav-button {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  /* Hide nav labels on very small screens, show only icons */
+  @media (max-width: 380px) {
+    .nav-label {
+      display: none;
+    }
+    
+    .nav-button {
+      padding: 8px;
+    }
+  }
+  
+  /* Adjust sign in button */
+  .sign-in-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  /* Ensure logo doesn't get too big */
+  .header-container .logo-container {
+    max-width: 150px;
+  }
+}
+
+/* For very small screens, allow header to wrap nicely */
+@media (max-width: 480px) {
+  .header-container > .content-container > div {
+    justify-content: center;
+  }
+  
+  /* Center navigation on mobile when wrapped */
+  nav {
+    justify-content: center;
+    width: 100%;
+  }
 }
