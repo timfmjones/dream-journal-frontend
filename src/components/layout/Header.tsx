@@ -22,53 +22,118 @@ const Header: React.FC<HeaderProps> = ({ currentView, onViewChange, onAuthClick 
   ];
 
   return (
-    <header className="header-container">
-      <div className="content-container">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Logo size="small" showText={true} />
+    <header style={{
+      background: 'linear-gradient(135deg, #e6e6fa 0%, #f8f8ff 100%)',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+      width: '100%',
+      overflow: 'hidden' // Prevent any overflow
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '100vw', // Never exceed viewport width
+        padding: '12px 16px',
+        margin: '0 auto',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          gap: '8px',
+          width: '100%'
+        }}>
+          {/* Logo section */}
+          <div style={{ 
+            flex: '0 0 auto',
+            minWidth: 0 // Allow logo to shrink if needed
+          }}>
+            <Logo size="small" showText={false} /> {/* Hide text on mobile to save space */}
           </div>
           
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {navItems.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => onViewChange(id)}
-                className={`nav-button ${currentView === id ? 'active' : ''}`}
-              >
-                <Icon style={{ width: '16px', height: '16px', display: 'inline-block', marginRight: '6px' }} />
-                {label}
-              </button>
-            ))}
+          {/* Navigation section */}
+          <nav style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '4px',
+            flex: '1 1 auto',
+            minWidth: 0, // Allow nav to shrink
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              display: 'flex',
+              gap: '4px',
+              flex: '1 1 auto',
+              minWidth: 0
+            }}>
+              {navItems.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => onViewChange(id)}
+                  style={{
+                    background: currentView === id ? '#7c3aed' : 'transparent',
+                    color: currentView === id ? 'white' : '#666',
+                    padding: '6px 8px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    whiteSpace: 'nowrap',
+                    flex: '0 1 auto',
+                    minWidth: 0,
+                    overflow: 'hidden'
+                  }}
+                  title={label} // Add tooltip for accessibility
+                >
+                  <Icon style={{ 
+                    width: '16px', 
+                    height: '16px',
+                    flexShrink: 0 
+                  }} />
+                  <span style={{
+                    display: window.innerWidth > 400 ? 'inline' : 'none'
+                  }}>{label}</span>
+                </button>
+              ))}
+            </div>
 
-            <div style={{ marginLeft: '16px' }}>
+            {/* Auth section */}
+            <div style={{ 
+              flex: '0 0 auto',
+              marginLeft: '4px'
+            }}>
               {user && !isGuest ? (
                 <button
                   onClick={() => onViewChange('settings')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: '8px',
-                    borderRadius: '8px',
+                    padding: '4px',
+                    borderRadius: '50%',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#f0f0f0'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  title={user.displayName || user.email || 'Account'}
                 >
                   <div style={{
-                    width: '32px',
-                    height: '32px',
+                    width: '28px',
+                    height: '28px',
                     borderRadius: '50%',
                     background: '#7c3aed',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: 'white',
-                    fontSize: '14px',
+                    fontSize: '12px',
                     fontWeight: '600'
                   }}>
                     {user.displayName?.[0] || user.email?.[0] || 'U'}
@@ -77,7 +142,18 @@ const Header: React.FC<HeaderProps> = ({ currentView, onViewChange, onAuthClick 
               ) : (
                 <button
                   onClick={onAuthClick}
-                  className="sign-in-button"
+                  style={{
+                    background: '#7c3aed',
+                    color: 'white',
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    fontWeight: '500',
+                    fontSize: '12px',
+                    transition: 'all 0.2s',
+                    border: 'none',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
                 >
                   Sign In
                 </button>
