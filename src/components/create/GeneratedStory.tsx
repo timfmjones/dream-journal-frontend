@@ -1,6 +1,6 @@
 // src/components/create/GeneratedStory.tsx
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Sparkles, Save } from 'lucide-react';
 import TextToSpeech from '../common/TextToSpeech';
 import type { DreamImage } from '../../types';
@@ -13,8 +13,21 @@ interface GeneratedStoryProps {
 }
 
 const GeneratedStory: React.FC<GeneratedStoryProps> = ({ title, story, images, onSave }) => {
+  const storyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll to the story when it's rendered
+    if (storyRef.current) {
+      storyRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest' 
+      });
+    }
+  }, [story]); // Re-run if story changes
+
   return (
-    <div className="generated-content" style={{ marginTop: '24px' }}>
+    <div ref={storyRef} className="generated-content" style={{ marginTop: '24px' }}>
       {title && (
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#4c1d95', marginBottom: '8px' }}>{title}</h2>

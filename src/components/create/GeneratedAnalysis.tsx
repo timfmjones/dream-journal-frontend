@@ -1,6 +1,6 @@
 // src/components/create/GeneratedAnalysis.tsx
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Brain, Save } from 'lucide-react';
 import TextToSpeech from '../common/TextToSpeech';
 
@@ -11,8 +11,21 @@ interface GeneratedAnalysisProps {
 }
 
 const GeneratedAnalysis: React.FC<GeneratedAnalysisProps> = ({ title, analysis, onSave }) => {
+  const analysisRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll to the analysis when it's rendered
+    if (analysisRef.current) {
+      analysisRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest' 
+      });
+    }
+  }, [analysis]); // Re-run if analysis changes
+
   return (
-    <div className="generated-content" style={{ 
+    <div ref={analysisRef} className="generated-content" style={{ 
       marginTop: '24px',
       background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)'
     }}>
