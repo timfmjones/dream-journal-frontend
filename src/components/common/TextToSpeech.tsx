@@ -156,38 +156,37 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
   return (
     <div className={`text-to-speech-controls ${className}`}>
       <div className="flex items-center space-x-2">
-        <button
-          onClick={handlePlayPause}
-          disabled={isLoading}
-          className="bg-purple-600 text-white p-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={showPreloadedIndicator ? {
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            animation: 'pulse 2s infinite'
-          } : {}}
-          title={getButtonLabel()}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm">Loading...</span>
-            </>
-          ) : !isSpeaking && !isUsingPreloaded ? (
-            <>
-              <Volume2 className="w-4 h-4" />
-              <span className="text-sm">{showPreloadedIndicator ? 'Play (Ready!)' : 'Read Aloud'}</span>
-            </>
-          ) : isPaused ? (
-            <>
-              <Play className="w-4 h-4" />
-              <span className="text-sm">Resume</span>
-            </>
-          ) : (
-            <>
-              <Pause className="w-4 h-4" />
-              <span className="text-sm">Pause</span>
-            </>
-          )}
-        </button>
+        {/* Only show the main button if there's NO preloaded audio */}
+        {!preloadedAudioUrl && (
+          <button
+            onClick={handlePlayPause}
+            disabled={isLoading}
+            className="bg-purple-600 text-white p-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={getButtonLabel()}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Loading...</span>
+              </>
+            ) : !isSpeaking && !isUsingPreloaded ? (
+              <>
+                <Volume2 className="w-4 h-4" />
+                <span className="text-sm">Read Aloud</span>
+              </>
+            ) : isPaused ? (
+              <>
+                <Play className="w-4 h-4" />
+                <span className="text-sm">Resume</span>
+              </>
+            ) : (
+              <>
+                <Pause className="w-4 h-4" />
+                <span className="text-sm">Pause</span>
+              </>
+            )}
+          </button>
+        )}
 
         {(isSpeaking || isUsingPreloaded) && (
           <button

@@ -1,7 +1,7 @@
-// src/components/create/GeneratedStory.tsx - Complete updated version
+// src/components/create/GeneratedStory.tsx - Cleaner integration
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Sparkles, Save, Volume2, Loader2 } from 'lucide-react';
+import { Sparkles, Save, Volume2, VolumeX, Loader2, Settings } from 'lucide-react';
 import { api } from '../../services/api';
 import TextToSpeech from '../common/TextToSpeech';
 import type { DreamImage } from '../../types';
@@ -20,6 +20,7 @@ const GeneratedStory: React.FC<GeneratedStoryProps> = ({ title, story, images, o
   const [preloadError, setPreloadError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showAudioSettings, setShowAudioSettings] = useState(false);
 
   // Preload audio as soon as story is available
   useEffect(() => {
@@ -109,13 +110,21 @@ const GeneratedStory: React.FC<GeneratedStoryProps> = ({ title, story, images, o
     }
   }, [story]);
 
-  const handleQuickPlay = () => {
+  const handlePlayPause = () => {
     if (audioRef.current) {
       if (audioRef.current.paused) {
         audioRef.current.play();
       } else {
         audioRef.current.pause();
       }
+    }
+  };
+
+  const handleStop = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
     }
   };
 
@@ -140,44 +149,7 @@ const GeneratedStory: React.FC<GeneratedStoryProps> = ({ title, story, images, o
           Your Fairy Tale
         </h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Quick play button if audio is preloaded */}
-          {preloadedAudioUrl && !isPreloading && (
-            <button
-              onClick={handleQuickPlay}
-              style={{
-                background: isPlaying 
-                  ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-                  : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: 'white',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                transition: 'all 0.2s',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                animation: !isPlaying ? 'pulse 2s infinite' : 'none'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-              }}
-              title={isPlaying ? "Pause audio" : "Audio ready - click to play!"}
-            >
-              <Volume2 style={{ width: '16px', height: '16px' }} />
-              {isPlaying ? 'Pause' : 'Play Audio (Ready!)'}
-            </button>
-          )}
-          
-          {/* Loading indicator */}
+          {/* Show loading state */}
           {isPreloading && (
             <div style={{
               display: 'flex',
@@ -194,14 +166,89 @@ const GeneratedStory: React.FC<GeneratedStoryProps> = ({ title, story, images, o
             </div>
           )}
           
-          {/* Full TTS controls */}
-          <TextToSpeech 
-            text={story} 
-            showSettings={true}
-            preloadedAudioUrl={preloadedAudioUrl}
-          />
+          {/* Show preloaded audio controls */}
+          {preloadedAudioUrl && !isPreloading && (
+            <>
+              <button
+                onClick={handlePlayPause}
+                style={{
+                  background: isPlaying 
+                    ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                    : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  animation: !isPlaying ? 'pulse 2s infinite' : 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+                }}
+                title={isPlaying ? "Pause audio" : "Audio ready - click to play!"}
+              >
+                <Volume2 style={{ width: '16px', height: '16px' }} />
+                {isPlaying ? 'Pause' : 'Play Audio (Ready!)'}
+              </button>
+              
+              {isPlaying && (
+                <button
+                  onClick={handleStop}
+                  className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors"
+                  title="Stop reading"
+                >
+                  <VolumeX className="w-4 h-4" />
+                </button>
+              )}
+              
+              <button
+                onClick={() => setShowAudioSettings(!showAudioSettings)}
+                className="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                title="Audio settings"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+            </>
+          )}
+          
+          {/* Show regular TTS component only if audio is not preloaded */}
+          {!preloadedAudioUrl && !isPreloading && (
+            <TextToSpeech 
+              text={story} 
+              showSettings={true}
+            />
+          )}
         </div>
       </div>
+      
+      {/* Show audio settings if toggled */}
+      {showAudioSettings && preloadedAudioUrl && (
+        <div style={{
+          marginTop: '12px',
+          padding: '12px',
+          background: '#f3f4f6',
+          borderRadius: '8px',
+          fontSize: '13px',
+          color: '#6b7280'
+        }}>
+          <p style={{ margin: 0 }}>
+            <strong>Note:</strong> Audio has been pre-generated using your preferred voice settings. 
+            To change voice or speed, please update your preferences in Settings and generate a new story.
+          </p>
+        </div>
+      )}
       
       <div className="generated-text">
         {story}
