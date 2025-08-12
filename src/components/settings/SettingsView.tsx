@@ -1,7 +1,7 @@
 // src/components/settings/SettingsView.tsx
 
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, Download, Upload, Trash2, Image } from 'lucide-react';
+import { User, LogOut, Download, Upload, Trash2, Image, Volume2 } from 'lucide-react';
 import { useDreams } from '../../hooks/useDreams';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
@@ -18,7 +18,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onShowAuth }) => {
   const [storyTone, setStoryTone] = useState<StoryTone>('whimsical');
   const [storyLength, setStoryLength] = useState<StoryLength>('medium');
   const [generateImages, setGenerateImages] = useState(true);
+  const [autoPlayAudio, setAutoPlayAudio] = useState(true); // Default to true for better UX
+  const [preferredVoice, setPreferredVoice] = useState('alloy');
   const [stats, setStats] = useState<UserStats | null>(null);
+
+  // Voice options
+  const voiceOptions = [
+    { id: 'alloy', name: 'Alloy', description: 'Neutral and balanced' },
+    { id: 'echo', name: 'Echo', description: 'Warm and conversational' },
+    { id: 'fable', name: 'Fable', description: 'Expressive and dynamic' },
+    { id: 'onyx', name: 'Onyx', description: 'Deep and authoritative' },
+    { id: 'nova', name: 'Nova', description: 'Friendly and upbeat' },
+    { id: 'shimmer', name: 'Shimmer', description: 'Soft and gentle' }
+  ];
 
   useEffect(() => {
     if (user && !isGuest) {
@@ -32,6 +44,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onShowAuth }) => {
       setStoryTone(preferences.tone || 'whimsical');
       setStoryLength(preferences.length || 'medium');
       setGenerateImages(preferences.generateImages !== false);
+      setAutoPlayAudio(preferences.autoPlayAudio !== false); // Default to true
+      setPreferredVoice(preferences.voice || 'alloy');
     }
   }, [user, isGuest]);
 
@@ -51,23 +65,39 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onShowAuth }) => {
     }
   };
 
+  const savePreferences = (preferences: { 
+    tone: StoryTone; 
+    length: StoryLength; 
+    generateImages: boolean;
+    autoPlayAudio: boolean;
+    voice: string;
+  }) => {
+    localStorage.setItem('dreamLogPreferences', JSON.stringify(preferences));
+  };
+
   const handleToneChange = (tone: StoryTone) => {
     setStoryTone(tone);
-    savePreferences({ tone, length: storyLength, generateImages });
+    savePreferences({ tone, length: storyLength, generateImages, autoPlayAudio, voice: preferredVoice });
   };
 
   const handleLengthChange = (length: StoryLength) => {
     setStoryLength(length);
-    savePreferences({ tone: storyTone, length, generateImages });
+    savePreferences({ tone: storyTone, length, generateImages, autoPlayAudio, voice: preferredVoice });
   };
 
   const handleGenerateImagesChange = (generate: boolean) => {
     setGenerateImages(generate);
-    savePreferences({ tone: storyTone, length: storyLength, generateImages: generate });
+    savePreferences({ tone: storyTone, length: storyLength, generateImages: generate, autoPlayAudio, voice: preferredVoice });
   };
 
-  const savePreferences = (preferences: { tone: StoryTone; length: StoryLength; generateImages: boolean }) => {
-    localStorage.setItem('dreamLogPreferences', JSON.stringify(preferences));
+  const handleAutoPlayChange = (autoPlay: boolean) => {
+    setAutoPlayAudio(autoPlay);
+    savePreferences({ tone: storyTone, length: storyLength, generateImages, autoPlayAudio: autoPlay, voice: preferredVoice });
+  };
+
+  const handleVoiceChange = (voice: string) => {
+    setPreferredVoice(voice);
+    savePreferences({ tone: storyTone, length: storyLength, generateImages, autoPlayAudio, voice });
   };
 
   // Calculate local stats for guest users
@@ -218,7 +248,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onShowAuth }) => {
           <div className="image-toggle-container">
             <div className="image-toggle-label">
               <Image style={{ width: '16px', height: '16px' }} />
-              <span>Generate Illustrations by Default</span>
+              <div>
+                <div style={{ fontWeight: '500' }}>Generate Illustrations by Default</div>
+                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '2px' }}>
+                  Automatically create AI-generated images when generating fairy tales
+                </div>
+              </div>
             </div>
             <div 
               className={`toggle-switch ${generateImages ? 'active' : ''}`}
@@ -228,8 +263,58 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onShowAuth }) => {
             </div>
           </div>
           <p style={{ fontSize: '12px', color: '#666', marginTop: '8px', fontStyle: 'italic' }}>
-            Automatically create AI-generated images when generating fairy tales
+            {generateImages ? 'AI illustrations will be generated with your stories' : 'Stories will be created without illustrations to save time'}
           </p>
+        </div>
+
+        {/* Audio Preferences - NEW SECTION */}
+        <div className="settings-section">
+          <h3>Audio Preferences</h3>
+          
+          <div style={{ marginBottom: '16px' }}>
+            <label className="form-label">Preferred Voice</label>
+            <select
+              value={preferredVoice}
+              onChange={(e) => handleVoiceChange(e.target.value)}
+              className="select-input"
+            >
+              {voiceOptions.map(({ id, name, description }) => (
+                <option key={id} value={id}>{name} - {description}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="image-toggle-container" style={{ background: '#f3e8ff' }}>
+            <div className="image-toggle-label">
+              <Volume2 style={{ width: '16px', height: '16px', color: '#7c3aed' }} />
+              <div>
+                <div style={{ fontWeight: '500' }}>Auto-Play Stories</div>
+                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '2px' }}>
+                  Automatically read stories aloud when generated
+                </div>
+              </div>
+            </div>
+            <div 
+              className={`toggle-switch ${autoPlayAudio ? 'active' : ''}`}
+              onClick={() => handleAutoPlayChange(!autoPlayAudio)}
+            >
+              <div className="toggle-switch-knob" />
+            </div>
+          </div>
+          <p style={{ fontSize: '12px', color: '#7c3aed', marginTop: '8px', fontStyle: 'italic' }}>
+            {autoPlayAudio ? '🔊 Stories will begin playing automatically as soon as they\'re ready' : '🔇 You\'ll need to click play to hear your stories'}
+          </p>
+
+          <div style={{ 
+            marginTop: '16px', 
+            padding: '12px', 
+            background: '#e0e7ff', 
+            borderRadius: '8px',
+            fontSize: '13px',
+            color: '#4c1d95'
+          }}>
+            <strong>💡 Pro tip:</strong> Your stories will load faster with auto-play enabled because audio generation starts immediately!
+          </div>
         </div>
 
         {/* Dream Statistics */}
@@ -319,11 +404,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onShowAuth }) => {
           <h3>About</h3>
           <p style={{ fontSize: '14px', color: '#666', lineHeight: '1.6', marginBottom: '16px' }}>
             DreamSprout transforms your dreams into magical fairy tales and provides insightful analysis using AI. 
-            Record your dreams through text or voice, discuss to generate a fairy tale with or without illustrations, 
+            Record your dreams through text or voice, choose to generate a fairy tale with or without illustrations, 
             get dream analysis, or simply save your dream for later.
           </p>
           <p style={{ fontSize: '12px', color: '#999' }}>
-            Version 2.1 - Enhanced with customizable image generation options
+            Version 2.2 - Enhanced with auto-play audio and voice preferences
           </p>
           
           <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e0e0e0' }}>

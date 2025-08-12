@@ -1,4 +1,4 @@
-// src/components/common/TextToSpeech.tsx
+// src/components/common/TextToSpeech.tsx - Updated to accept preloaded audio
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, VolumeX, Pause, Play, Settings, Loader2 } from 'lucide-react';
@@ -8,12 +8,16 @@ interface TextToSpeechProps {
   text: string;
   className?: string;
   showSettings?: boolean;
+  preloadedAudioUrl?: string | null; // NEW PROP
+  onAudioReady?: (audioUrl: string) => void; // NEW PROP
 }
 
 const TextToSpeech: React.FC<TextToSpeechProps> = ({ 
   text, 
   className = '', 
-  showSettings = false 
+  showSettings = false,
+  preloadedAudioUrl,
+  onAudioReady
 }) => {
   const {
     isSupported,
@@ -33,10 +37,33 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
 
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [isUsingPreloaded, setIsUsingPreloaded] = useState(false);
   
   // Store the text being spoken to restart if needed
   const currentTextRef = useRef(text);
   currentTextRef.current = text;
+  const preloadedAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Handle preloaded audio
+  useEffect(() => {
+    if (preloadedAudioUrl && !preloadedAudioRef.current) {
+      const audio = new Audio(preloadedAudioUrl);
+      audio.preload = 'auto';
+      preloadedAudioRef.current = audio;
+      
+      // Notify parent when audio is ready
+      if (onAudioReady) {
+        onAudioReady(preloadedAudioUrl);
+      }
+    }
+
+    return () => {
+      if (preloadedAudioRef.current) {
+        preloadedAudioRef.current.pause();
+        preloadedAudioRef.current = null;
+      }
+    };
+  }, [preloadedAudioUrl, onAudioReady]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -50,6 +77,23 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
   }
 
   const handlePlayPause = () => {
+    // If we have preloaded audio and haven't played yet, use it
+    if (preloadedAudioRef.current && !isSpeaking && !isUsingPreloaded) {
+      setIsUsingPreloaded(true);
+      
+      // Set up event handlers
+      preloadedAudioRef.current.onplay = () => {
+        // You might want to update state here
+      };
+      
+      preloadedAudioRef.current.onended = () => {
+        setIsUsingPreloaded(false);
+      };
+      
+      preloadedAudioRef.current.play();
+      return;
+    }
+
     if (!isSpeaking) {
       // Start speaking
       speak(currentTextRef.current, { speed });
@@ -63,7 +107,13 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
   };
 
   const handleStop = () => {
-    stop();
+    if (preloadedAudioRef.current && isUsingPreloaded) {
+      preloadedAudioRef.current.pause();
+      preloadedAudioRef.current.currentTime = 0;
+      setIsUsingPreloaded(false);
+    } else {
+      stop();
+    }
   };
 
   const handleVoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -91,10 +141,14 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
     }
   };
 
+  // Show special indicator if audio is preloaded
+  const showPreloadedIndicator = preloadedAudioUrl && !isUsingPreloaded && !isSpeaking;
+
   // Debug info
   const getButtonLabel = () => {
+    if (showPreloadedIndicator) return 'Read Aloud (Ready!)';
     if (isLoading) return 'Loading...';
-    if (!isSpeaking) return 'Read Aloud';
+    if (!isSpeaking && !isUsingPreloaded) return 'Read Aloud';
     if (isPaused) return 'Resume';
     return 'Pause';
   };
@@ -106,6 +160,10 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
           onClick={handlePlayPause}
           disabled={isLoading}
           className="bg-purple-600 text-white p-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={showPreloadedIndicator ? {
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            animation: 'pulse 2s infinite'
+          } : {}}
           title={getButtonLabel()}
         >
           {isLoading ? (
@@ -113,10 +171,10 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="text-sm">Loading...</span>
             </>
-          ) : !isSpeaking ? (
+          ) : !isSpeaking && !isUsingPreloaded ? (
             <>
               <Volume2 className="w-4 h-4" />
-              <span className="text-sm">Read Aloud</span>
+              <span className="text-sm">{showPreloadedIndicator ? 'Play (Ready!)' : 'Read Aloud'}</span>
             </>
           ) : isPaused ? (
             <>
@@ -131,7 +189,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
           )}
         </button>
 
-        {isSpeaking && (
+        {(isSpeaking || isUsingPreloaded) && (
           <button
             onClick={handleStop}
             className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors"
@@ -203,15 +261,18 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
 
           <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-xs text-blue-800">
-              <strong>Tip:</strong> This feature uses OpenAI's advanced text-to-speech technology for natural-sounding voices. Audio is generated on-demand and may take a moment to load for longer texts.
+              <strong>Tip:</strong> This feature uses OpenAI's advanced text-to-speech technology for natural-sounding voices. 
+              {showPreloadedIndicator && ' Audio has been pre-loaded for instant playback!'}
             </p>
           </div>
 
-          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-xs text-yellow-800">
-              <strong>Note:</strong> Changing voice or speed will restart the reading from the beginning.
-            </p>
-          </div>
+          {!showPreloadedIndicator && (
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs text-yellow-800">
+                <strong>Note:</strong> Changing voice or speed will restart the reading from the beginning.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
